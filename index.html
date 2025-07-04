@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จำนวนเต็มหรรษา: เก็บตัวเลขธรรมชาติ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* style.css (รวมอยู่ในนี้) */
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Use min-height to ensure it takes full viewport height */
+            margin: 0;
+            background: linear-gradient(to bottom right, #5bc0de, #428bca);
+            color: #ecf0f1;
+            overflow: hidden; /* Prevent body scrollbars */
+            padding: 10px; /* Add some padding around the game wrapper */
+            box-sizing: border-box;
+            background-image: url('images/background_nature.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        #game-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 900px; /* Max width for larger screens */
+            height: 95vh; /* Take up most of the viewport height */
+            max-height: 800px; /* Max height to prevent stretching too much */
+            background-color: rgba(0, 0, 0, 0.7);
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.7);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 5px solid #00ffff;
+            display: flex; /* Use flexbox for inner screen management */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* Center content vertically in wrapper */
+        }
+
+        .game-screen {
+            position: absolute; /* Changed to absolute for proper stacking and transitions */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            transform: translateX(100%);
+            opacity: 0;
+            z-index: 1;
+            pointer-events: none; /* Disable interaction when hidden */
+            background-color: rgba(0, 0, 0, 0.7); /* Ensure consistent overlay */
+        }
+
+        .game-screen.active {
+            transform: translateX(0);
+            opacity: 1;
+            z-index: 2;
+            pointer-events: auto; /* Enable interaction when active */
+        }
+        /* No need for .game-screen.hidden anymore with pointer-events */
+
+        h1, h2 {
+            color: #7affd4;
+            margin-bottom: 20px; /* Reduced margin */
+            font-size: clamp(1.8em, 4vw, 2.8em); /* Responsive font size */
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+            text-align: center;
+        }
+        
+        p {
+            font-size: clamp(1em, 2.5vw, 1.2em); /* Responsive font size */
+            margin-bottom: 10px; /* Reduced margin */
+            text-align: center;
+        }
+
+        /* --- Start Screen --- */
+        #start-screen {
+            background-color: rgba(0, 0, 0, 0.7); /* Dark overlay */
+        }
+        #start-screen h1 {
+            font-size: clamp(2.5em, 5vw, 3em); /* Larger responsive font */
+            margin-bottom: 30px;
+        }
+        #start-screen p {
+            font-size: clamp(1.2em, 3vw, 1.5em);
+            margin-bottom: 30px;
+        }
+        .instructions {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px; /* Smaller padding */
+            margin-bottom: 25px; /* Smaller margin */
+            border: 1px solid #7affd4;
+            max-width: 90%; /* Wider on smaller screens */
+            box-shadow: 0 0 15px rgba(122, 255, 212, 0.3);
+            overflow-y: auto; /* Allow scrolling if instructions are too long */
+            max-height: 30vh; /* Limit height of instructions box */
+        }
+        .instructions h2 {
+            font-size: clamp(1.5em, 3.5vw, 1.8em);
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .instructions ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            font-size: clamp(0.9em, 2.2vw, 1.1em);
+            line-height: 1.5;
+        }
+        .instructions li {
+            margin-bottom: 5px;
+        }
+        .instructions img { /* For inline images in instructions */
+            width: clamp(20px, 4vw, 30px);
+            height: clamp(20px, 4vw, 30px);
+            vertical-align: middle;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 300px;
+        }
+        .input-group label {
+            font-size: clamp(1em, 2.5vw, 1.2em);
+            margin-bottom: 8px;
+            color: #ecf0f1;
+        }
+        .input-group input[type="text"] {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 2px solid #7affd4;
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #ecf0f1;
+            font-size: clamp(1em, 2.5vw, 1.2em);
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+            text-align: center;
+        }
+        .input-group input[type="text"]::placeholder {
+            color: rgba(236, 240, 241, 0.7);
+        }
+        .input-group input[type="text"]:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+
+        /* --- Buttons --- */
+        .action-button {
+            background-color: #1abc9c;
+            color: white;
+            border: none;
+            padding: 15px 30px; /* Adjusted padding */
+            border-radius: 10px;
+            font-size: clamp(1.2em, 3vw, 1.5em); /* Responsive font size */
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            border-bottom: 5px solid #16a085;
+            margin-top: 20px; /* Ensure space above button */
+        }
+
+        .action-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(0, 255, 255, 0.7);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #16a085;
+        }
+
+        .action-button.hidden {
+            display: none;
+        }
+        /* Style for restart button inside game */
+        #restart-game-button {
+            background-color: #f39c12; /* Orange color for restart */
+            border-bottom: 5px solid #e67e22;
+            margin-top: 10px; /* Less margin than start button */
+            padding: 12px 25px; /* Slightly smaller */
+            font-size: clamp(1em, 2.5vw, 1.3em);
+            position: absolute; /* Position it within the game-screen */
+            bottom: 10px; /* Adjust as needed */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100; /* Ensure it's above other elements */
+        }
+        #restart-game-button:hover {
+            box-shadow: 0 12px 20px rgba(243, 156, 18, 0.7);
+        }
+        #restart-game-button:active {
+            border-bottom: 2px solid #e67e22;
+        }
+
+
+        /* --- Game Screen --- */
+        #game-screen {
+            justify-content: flex-start; /* Align content to top */
+            padding-top: 20px; /* Adjusted padding */
+            padding-bottom: 20px; /* Ensure space for restart button */
+        }
+        #player-name-display { /* New element to display player name */
+            font-size: clamp(1em, 2.5vw, 1.2em);
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+        }
+
+        #game-stats {
+            display: flex;
+            flex-wrap: wrap; /* Allow stats to wrap on smaller screens */
+            justify-content: space-around;
+            width: 95%; /* Wider to fill space */
+            margin-bottom: 15px; /* Reduced margin */
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 10px 15px; /* Adjusted padding */
+            border-radius: 10px;
+            border: 1px solid #7affd4;
+            font-size: clamp(0.9em, 2vw, 1.1em); /* Responsive font size */
+            box-shadow: 0 0 15px rgba(122, 255, 212, 0.3);
+            gap: 5px 10px; /* Gap between stat items */
+        }
+        #game-stats p {
+            margin: 0; /* Remove default paragraph margin */
+        }
+
+        #game-stats p span {
+            font-weight: bold;
+            color: #ffeaa7;
+        }
+        #hp {
+            color: #ff6b6b;
+        }
+
+        #game-area {
+            position: relative;
+            width: 95%; /* Wider to fill space */
+            height: clamp(250px, 40vh, 400px); /* Responsive height for game area */
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            margin-bottom: 15px; /* Reduced margin */
+        }
+
+        #number-spawn-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 120px); /* Leave space at bottom for baskets, adjusted height */
+            overflow: hidden;
+        }
+
+        .moving-number {
+            position: absolute;
+            font-size: clamp(2em, 5vw, 3em); /* Responsive font size */
+            font-weight: bold;
+            color: #ffcc00;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 50%;
+            border: 3px solid #ffcc00;
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.8);
+            cursor: pointer;
+            text-align: center;
+            line-height: 1em;
+            min-width: clamp(70px, 12vw, 80px); /* Responsive min-width */
+            min-height: clamp(70px, 12vw, 80px); /* Responsive min-height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s ease-out, border-color 0.1s ease, box-shadow 0.1s ease, opacity 0.5s ease-out;
+            z-index: 5;
+        }
+        /* Adjust font size for larger numbers if needed, e.g., for -20 */
+        .moving-number[data-value*="-"], .moving-number[data-value="10"], .moving-number[data-value="20"] {
+            font-size: clamp(1.8em, 4.5vw, 2.5em); /* Slightly smaller responsive font */
+            padding: 15px 18px; /* Adjust padding to keep circle shape */
+        }
+        /* Further adjustments for really small screens if numbers still overflow */
+        @media (max-width: 480px) {
+            .moving-number[data-value*="-"], .moving-number[data-value="10"], .moving-number[data-value="20"] {
+                font-size: clamp(1.5em, 4vw, 2em);
+                padding: 12px 15px;
+            }
+        }
+
+
+        .moving-number.selected {
+            border-color: #00ff00;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 1);
+            transform: scale(1.1);
+        }
+        /* Feedback for numbers after selection attempt */
+        .moving-number.feedback-correct {
+            border-color: #00ff00;
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.9);
+            animation: pulseGreen 0.5s ease-out;
+        }
+        .moving-number.feedback-incorrect {
+            border-color: #ff0000;
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.9);
+            animation: shakeNumber 0.3s;
+        }
+        @keyframes pulseGreen {
+            0% { transform: scale(1.0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1.0); }
+        }
+        @keyframes shakeNumber {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-8px); }
+            100% { transform: translateX(0); }
+        }
+
+
+        #basket-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 120px; /* Height for baskets, adjusted */
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            padding-bottom: 10px;
+            gap: 5px; /* Reduced gap */
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .basket {
+            width: 32%; /* Slightly wider to fill space */
+            height: 100%; /* Take full height of container */
+            background-size: contain;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: clamp(0.9em, 2.2vw, 1.1em); /* Responsive font size */
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            padding-bottom: 5px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+            border: 3px solid transparent;
+            border-radius: 10px;
+            box-sizing: border-box; /* Include padding/border in element's total width/height */
+        }
+        .basket:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.8);
+            text-shadow: 0 0 10px rgba(255,255,255,0.7);
+        }
+        .basket:active {
+            transform: translateY(0) scale(1);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .basket p {
+            margin-bottom: 5px;
+            color: #ffe0b3;
+            text-align: center; /* Ensure text is centered within its area */
+        }
+
+        /* Specific basket images */
+        #negative-basket { background-image: url('images/basket_negative.png'); }
+        #zero-basket { background-image: url('images/basket_zero.png'); }
+        #positive-basket { background-image: url('images/basket_positive.png'); }
+
+        /* Feedback colors for baskets */
+        .basket.correct-feedback {
+            border-color: #00ff00;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.9);
+            animation: correctPulseBasket 0.5s 2 alternate;
+        }
+        .basket.incorrect-feedback {
+            border-color: #ff0000;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.9);
+            animation: shakeBasket 0.3s;
+        }
+        @keyframes correctPulseBasket {
+            from { transform: scale(1.0); }
+            to { transform: scale(1.02) translateY(-5px); }
+        }
+        @keyframes shakeBasket {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        #game-message {
+            font-size: clamp(1.1em, 2.8vw, 1.4em); /* Responsive font size */
+            font-weight: bold;
+            color: #ecf0f1;
+            margin-top: 15px; /* Reduced margin */
+            min-height: 35px; /* Adjusted min-height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px; /* Adjusted padding */
+            border-radius: 8px;
+            border: 1px solid #7affd4;
+            box-shadow: 0 0 15px rgba(122, 255, 212, 0.3);
+            width: 90%; /* Wider to fill space */
+            text-align: center;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .message-correct {
+            color: #00ff00 !important;
+            background-color: rgba(0, 255, 0, 0.2) !important;
+            border-color: #00ff00 !important;
+        }
+        .message-incorrect {
+            color: #ff0000 !important;
+            background-color: rgba(255, 0, 0, 0.2) !important;
+            border-color: #ff0000 !important;
+        }
+        .message-info {
+            color: #7affd4 !important;
+            background-color: rgba(122, 255, 212, 0.2) !important;
+            border-color: #7affd4 !important;
+        }
+
+
+        /* --- Result Screen --- */
+        #result-screen h2 {
+            font-size: clamp(2.5em, 5vw, 3em);
+            color: #f1c40f;
+            margin-bottom: 20px;
+        }
+        #result-screen p {
+            font-size: clamp(1.4em, 3.5vw, 1.8em);
+            margin-bottom: 30px; /* Adjusted margin */
+        }
+        #final-score {
+            color: #ffeaa7;
+            font-weight: bold;
+            font-size: clamp(1.2em, 3vw, 1.5em);
+        }
+
+
+        /* No need for explicit @media queries for general font sizes if using clamp() */
+        /* But keep for specific layout adjustments if necessary */
+
+        @media (max-width: 768px) {
+            #game-wrapper {
+                max-width: 95%; /* More width on smaller screens */
+                height: 98vh; /* Use more height on smaller screens */
+            }
+            .instructions {
+                max-height: 35vh; /* Adjust instructions height */
+                padding: 12px;
+            }
+            #game-stats {
+                padding: 8px 12px;
+            }
+            #game-area {
+                height: clamp(200px, 35vh, 350px); /* Adjust game area height more aggressively */
+            }
+            #number-spawn-area {
+                height: calc(100% - 100px); /* Reduce space for baskets slightly */
+            }
+            #basket-container {
+                height: 100px; /* Smaller basket container height */
+            }
+            .basket p {
+                font-size: clamp(0.8em, 2vw, 1em); /* Smaller font for basket labels */
+                margin-bottom: 3px;
+            }
+            #restart-game-button {
+                bottom: 5px; /* Adjust position for smaller screens */
+                padding: 10px 20px;
+                font-size: clamp(0.9em, 2.2vw, 1.1em);
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px; /* Less padding around game wrapper */
+            }
+            #game-wrapper {
+                border-radius: 10px; /* Smaller border-radius */
+                border-width: 3px; /* Thinner border */
+            }
+            h1, h2 {
+                margin-bottom: 15px;
+            }
+            .action-button {
+                padding: 10px 20px;
+                font-size: clamp(0.9em, 2.5vw, 1.2em);
+            }
+            .instructions {
+                padding: 10px;
+                max-height: 25vh; /* Even smaller for tiny screens */
+            }
+            #game-stats {
+                padding: 5px 8px;
+                flex-direction: column; /* Stack stats vertically */
+                align-items: center;
+                gap: 5px;
+            }
+            #game-stats p {
+                margin: 2px 0;
+            }
+            #game-area {
+                height: clamp(180px, 30vh, 300px);
+            }
+            #number-spawn-area {
+                height: calc(100% - 80px); /* More space for baskets on tiny screens */
+            }
+            #basket-container {
+                height: 80px; /* Even smaller basket container height */
+                gap: 2px;
+            }
+            .basket {
+                font-size: clamp(0.7em, 1.8vw, 0.9em);
+            }
+            .basket p {
+                margin-bottom: 0;
+            }
+            #game-message {
+                margin-top: 10px;
+                min-height: 30px;
+                padding: 5px 10px;
+            }
+            
+            .input-group {
+                max-width: 90%;
+            }
+            .input-group input[type="text"] {
+                padding: 8px 10px;
+                font-size: clamp(0.9em, 2.2vw, 1.1em);
+            }
+            #restart-game-button {
+                bottom: 2px; /* Even closer to bottom for tiny screens */
+                padding: 8px 15px;
+                font-size: clamp(0.8em, 2vw, 1em);
+            }
+            #player-name-display {
+                font-size: clamp(0.9em, 2.2vw, 1.1em);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-wrapper">
+        <div id="start-screen" class="game-screen active">
+            <h1>จำนวนเต็มหรรษา: เก็บตัวเลขธรรมชาติ!</h1>
+            <p>ช่วยเก็บตัวเลขที่เคลื่อนไหวใส่ตะกร้าให้ถูกประเภทนะ!</p>
+            <div class="input-group">
+                <label for="player-name-input">ชื่อผู้เล่น:</label>
+                <input type="text" id="player-name-input" placeholder="ใส่ชื่อของคุณที่นี่" value="ผู้เล่น"> </div>
+            <div class="instructions">
+                <h2>วิธีการเล่น:</h2>
+                <ul>
+                    <li>ตัวเลข 20 ตัวจะเคลื่อนไหวบนจอ</li>
+                    <li>**ขั้นตอนที่ 1:** คลิกที่ตัวเลขที่กำลังเคลื่อนไหวเพื่อ "เลือก" มัน</li>
+                    <li>**ขั้นตอนที่ 2:** คลิกที่ตะกร้าที่ตรงกับประเภทของตัวเลขนั้น:</li>
+                    <ul>
+                        <li><img src="images/basket_negative.png" alt="ตะกร้าลบ"> ตะกร้าซ้าย: จำนวนเต็มลบ</li>
+                        <li><img src="images/basket_zero.png" alt="ตะกร้าศูนย์"> ตะกร้ากลาง: จำนวนเต็มศูนย์</li>
+                        <li><img src="images/basket_positive.png" alt="ตะกร้าบวก"> ตะกร้าขวา: จำนวนเต็มบวก</li>
+                    </ul>
+                    <li>ถ้าตอบผิด ตัวเลขจะเด้งออกจากตะกร้า และคุณจะเสีย HP!</li>
+                    <li>มี HP 3 ดวง และเวลา 1 นาที!</li>
+                </ul>
+            </div>
+            <button id="start-game-button" class="action-button">เริ่มเกม</button>
+        </div>
+
+        <div id="game-screen" class="game-screen">
+            <h1 id="game-title">เก็บตัวเลข!</h1>
+            <p id="player-name-display"></p> <div id="game-stats">
+                <p>คะแนน: <span id="score">0</span></p>
+                <p>HP: <span id="hp">3</span></p>
+                <p>เวลา: <span id="timer">01:00</span></p>
+                <p>จำนวนที่เหลือ: <span id="remaining-numbers"></span></p>
+            </div>
+
+            <div id="game-area">
+                <div id="number-spawn-area">
+                    </div>
+                <div id="basket-container">
+                    <div class="basket" id="negative-basket" data-type="negative"><p>จำนวนเต็มลบ</p></div>
+                    <div class="basket" id="zero-basket" data-type="zero"><p>จำนวนเต็มศูนย์</p></div>
+                    <div class="basket" id="positive-basket" data-type="positive"><p>จำนวนเต็มบวก</p></div>
+                </div>
+            </div>
+            
+            <p id="game-message"></p>
+            <button id="restart-game-button" class="action-button">เริ่มเกมใหม่</button>
+        </div>
+
+        <div id="result-screen" class="game-screen">
+            <h2>เกมจบแล้ว!</h2>
+            <p id="final-result-message"></p>
+            <p>คะแนนสุดท้ายของคุณ: <span id="final-score">0</span></p>
+            <button id="play-again-button" class="action-button">เล่นอีกครั้ง</button>
+        </div>
+
+    </div>
+
+    <script>
+        // script.js (รวมอยู่ในนี้)
+
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+
+        const startGameButton = document.getElementById('start-game-button');
+        const playAgainButton = document.getElementById('play-again-button');
+        const restartGameButton = document.getElementById('restart-game-button'); 
+
+        // Player Name Input
+        const playerNameInput = document.getElementById('player-name-input');
+        const playerNameDisplay = document.getElementById('player-name-display');
+
+        // Game Screen Elements
+        const scoreSpan = document.getElementById('score');
+        const hpSpan = document.getElementById('hp');
+        const timerSpan = document.getElementById('timer');
+        const remainingNumbersSpan = document.getElementById('remaining-numbers');
+        const gameMessage = document.getElementById('game-message');
+        const finalScoreSpan = document.getElementById('final-score');
+        const finalResultMessage = document.getElementById('final-result-message');
+
+        const gameArea = document.getElementById('game-area'); // Main game area
+        const numberSpawnArea = document.getElementById('number-spawn-area'); // Area for moving numbers
+        const negativeBasket = document.getElementById('negative-basket');
+        const zeroBasket = document.getElementById('zero-basket');
+        const positiveBasket = document.getElementById('positive-basket');
+        
+        // --- Game Variables ---
+        let player = {
+            name: 'ผู้เล่น', // Default name
+            score: 0,
+            hp: 3
+        };
+        
+        let gameTimer;
+        let timeLeft = 60; // 60 seconds per round
+        let animationFrameId; // To control requestAnimationFrame for number movement
+
+        // Pool of numbers to be generated (values only)
+        let numberPoolInitial = []; 
+        // Array of active number objects currently moving on screen
+        // Each object: { element: DOM_DIV, value: number, x: num, y: num, dx: num, dy: num }
+        let activeNumbers = []; 
+
+        const NUMBER_SPEED = 1.5; // Pixels per frame (base speed)
+        const NUMBER_SIZE = 80; // Approx size of moving number div (min-width/height from CSS)
+
+        // Selected number state
+        let selectedNumberElement = null; // Stores the currently clicked number DOM element
+        let selectedNumberValue = null;   // Stores the value of the currently clicked number
+
+
+        // --- Sound Effects ---
+        const sfx = {
+            click: new Audio('audio/click.mp3'),
+            correct: new Audio('audio/correct.mp3'),
+            incorrect: new Audio('audio/incorrect.mp3'),
+            gameOver: new Audio('audio/game_over.mp3'),
+            newNumber: new Audio('audio/new_number.mp3'), // Used when new numbers spawn (all at once here)
+            // fanfare: new Audio('audio/fanfare.mp3') // Removed as high score is removed
+        };
+
+        // Set volume for all sounds (optional)
+        for (const key in sfx) {
+            if (sfx[key]) {
+                sfx[key].volume = 0.5;
+            }
+        }
+
+        function playSound(soundName) {
+            if (sfx[soundName]) {
+                sfx[soundName].currentTime = 0;
+                sfx[soundName].play().catch(e => console.log("Sound playback failed:", e));
+            }
+        }
+
+
+        // --- Helper Functions ---
+
+        function generateUniqueRandomNumbers(count, min, max) {
+            const numbers = new Set();
+            while (numbers.size < count) {
+                const num = Math.floor(Math.random() * (max - min + 1)) + min;
+                numbers.add(num);
+            }
+            return Array.from(numbers);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function populateAndShuffleInitialNumberPool() {
+            // Target 20 numbers
+            const totalNumbers = 20;
+            // Let's aim for a balanced distribution for 20 numbers
+            const numPositive = 7; // Example: 7 positive numbers
+            const numNegative = 7; // Example: 7 negative numbers
+            const numZero = totalNumbers - numPositive - numNegative; // Remaining are zeros
+
+            const positiveNumbers = generateUniqueRandomNumbers(numPositive, 1, 20); // Positive from 1 to 20
+            const negativeNumbers = generateUniqueRandomNumbers(numNegative, -20, -1); // Negative from -20 to -1
+            const zeroNumbers = Array(numZero).fill(0); // Create an array with `numZero` zeros
+
+            numberPoolInitial = [...positiveNumbers, ...negativeNumbers, ...zeroNumbers];
+            shuffleArray(numberPoolInitial);
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.game-screen').forEach(screen => {
+                if (screen.id === screenId) {
+                    screen.classList.remove('hidden'); 
+                    void screen.offsetWidth; // Trigger reflow for transition
+                    screen.classList.add('active');
+                } else {
+                    screen.classList.remove('active');
+                }
+            });
+        }
+
+        /**
+         * Determines the type of an integer.
+         * @param {number} num - The integer to check.
+         * @returns {string} - 'positive', 'negative', or 'zero'.
+         */
+        function getIntegerType(num) {
+            if (num > 0) return 'positive';
+            if (num < 0) return 'negative';
+            return 'zero';
+        }
+
+        /**
+         * Updates player score, HP, timer, and remaining numbers in the UI.
+         */
+        function updateUI() {
+            scoreSpan.textContent = player.score;
+            hpSpan.textContent = player.hp;
+            remainingNumbersSpan.textContent = activeNumbers.length; 
+            playerNameDisplay.textContent = `ผู้เล่น: ${player.name}`; // Display current player name
+
+            if (player.hp === 1) {
+                hpSpan.style.color = 'red';
+            } else if (player.hp === 2) {
+                hpSpan.style.color = 'orange';
+            } else {
+                hpSpan.style.color = '#7affd4';
+            }
+            // No more stats display to update here
+        }
+
+        // --- Multiple Number Movement Logic ---
+        function spawnAllNumbersOnScreen() {
+            numberSpawnArea.innerHTML = ''; // Clear any old numbers
+            activeNumbers = []; // Reset active numbers array
+
+            // Get the current dimensions of the spawn area
+            const spawnRect = numberSpawnArea.getBoundingClientRect(); 
+
+            numberPoolInitial.forEach((numValue, index) => {
+                const numberElement = document.createElement('div');
+                numberElement.classList.add('moving-number');
+                numberElement.textContent = numValue;
+                numberElement.dataset.value = numValue; // Store value for later check
+                numberElement.dataset.id = `num-${index}`; // Unique ID for each number
+
+                // Initial random position
+                const effectiveNumberSize = 60; 
+                let x = Math.random() * (spawnRect.width - effectiveNumberSize);
+                let y = Math.random() * (spawnRect.height - effectiveNumberSize);
+
+                x = Math.max(0, Math.min(x, spawnRect.width - effectiveNumberSize));
+                y = Math.max(0, Math.min(y, spawnRect.height - effectiveNumberSize));
+
+                // Use transform for initial positioning as well for consistency
+                numberElement.style.transform = `translate(${x}px, ${y}px)`;
+                numberSpawnArea.appendChild(numberElement);
+
+                activeNumbers.push({
+                    element: numberElement,
+                    value: numValue,
+                    x: x,
+                    y: y,
+                    dx: (Math.random() > 0.5 ? 1 : -1) * (NUMBER_SPEED + (Math.random() * 0.5)), 
+                    dy: (Math.random() > 0.5 ? 1 : -1) * (NUMBER_SPEED + (Math.random() * 0.5))
+                });
+
+                // Add click listener for selection
+                numberElement.addEventListener('click', selectMovingNumber);
+            });
+
+            remainingNumbersSpan.textContent = activeNumbers.length;
+            playSound('newNumber'); 
+            startAllNumbersMovement(); 
+        }
+
+        function startAllNumbersMovement() {
+            cancelAnimationFrame(animationFrameId); 
+
+            const spawnRect = numberSpawnArea.getBoundingClientRect(); 
+            const numberActualSize = NUMBER_SIZE; 
+
+            function animateAllNumbers() {
+                activeNumbers.forEach(numObj => {
+                    const numEl = numObj.element;
+                    
+                    numObj.x += numObj.dx;
+                    numObj.y += numObj.dy;
+
+                    // Collision with walls
+                    if (numObj.x + numberActualSize > spawnRect.width) {
+                        numObj.x = spawnRect.width - numberActualSize; 
+                        numObj.dx *= -1; 
+                    } else if (numObj.x < 0) {
+                        numObj.x = 0; 
+                        numObj.dx *= -1; 
+                    }
+
+                    if (numObj.y + numberActualSize > spawnRect.height) {
+                        numObj.y = spawnRect.height - numberActualSize; 
+                        numObj.dy *= -1; 
+                    } else if (numObj.y < 0) {
+                        numObj.y = 0; 
+                        numObj.dy *= -1; 
+                    }
+
+                    numEl.style.transform = `translate(${numObj.x}px, ${numObj.y}px)`;
+                });
+
+                animationFrameId = requestAnimationFrame(animateAllNumbers);
+            }
+            animationFrameId = requestAnimationFrame(animateAllNumbers);
+        }
+
+        function stopAllNumbersMovement() {
+            cancelAnimationFrame(animationFrameId);
+        }
+
+
+        // --- Game Core Logic ---
+
+        function startGameLogic() {
+            player.score = 0;
+            player.hp = 3;
+            timeLeft = 60;
+            
+            // Get player name from input
+            const name = playerNameInput.value.trim();
+            player.name = name === '' ? 'ผู้เล่น' : name; // Use 'ผู้เล่น' if empty
+
+            populateAndShuffleInitialNumberPool(); // Prepare the list of numbers
+            spawnAllNumbersOnScreen(); // Create and add all number elements to the screen
+
+            updateUI(); 
+            
+            gameMessage.textContent = 'คลิกที่ตัวเลขเพื่อเลือก!';
+            gameMessage.className = 'message-info';
+            
+            clearInterval(gameTimer);
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                const seconds = (timeLeft % 60).toString().padStart(2, '0');
+                timerSpan.textContent = `${minutes}:${seconds}`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(gameTimer);
+                    endGame('time_out');
+                }
+            }, 1000);
+
+            enableBasketClicks(); 
+        }
+
+        function selectMovingNumber(event) {
+            playSound('click'); 
+
+            if (selectedNumberElement) {
+                selectedNumberElement.classList.remove('selected');
+            }
+
+            selectedNumberElement = event.target;
+            selectedNumberValue = parseInt(selectedNumberElement.dataset.value);
+            selectedNumberElement.classList.add('selected');
+
+            gameMessage.textContent = `เลือกตัวเลข ${selectedNumberValue} แล้ว! คลิกที่ตะกร้า!`;
+            gameMessage.className = 'message-info';
+        }
+
+        function handleBasketClick(event) {
+            playSound('click'); 
+
+            if (!selectedNumberElement) {
+                gameMessage.textContent = 'กรุณาคลิกเลือกตัวเลขก่อน!';
+                gameMessage.className = 'message-info';
+                return;
+            }
+
+            disableBasketClicks();
+
+            const selectedBasketElement = event.currentTarget;
+            const selectedBasketType = selectedBasketElement.dataset.type;
+            const correctType = getIntegerType(selectedNumberValue);
+
+            const numObjToProcess = activeNumbers.find(obj => obj.element === selectedNumberElement);
+            if (!numObjToProcess) { 
+                console.error("Selected number object not found in activeNumbers array!");
+                selectedNumberElement.classList.remove('selected');
+                selectedNumberElement = null;
+                selectedNumberValue = null;
+                enableBasketClicks();
+                gameMessage.textContent = 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง!';
+                return;
+            }
+
+            selectedNumberElement.classList.remove('selected');
+            selectedNumberElement.removeEventListener('click', selectMovingNumber); 
+
+            if (selectedBasketType === correctType) {
+                player.score++;
+                gameMessage.textContent = `✅ ถูกต้อง! ${selectedNumberValue} ใส่ตะกร้า ${selectedBasketType} ได้สำเร็จ!`;
+                gameMessage.className = 'message-correct';
+                numObjToProcess.element.classList.add('feedback-correct'); 
+                selectedBasketElement.classList.add('correct-feedback'); 
+                playSound('correct');
+
+                numObjToProcess.element.style.opacity = '0'; 
+                numObjToProcess.element.style.pointerEvents = 'none'; 
+
+                setTimeout(() => {
+                    if (numberSpawnArea.contains(numObjToProcess.element)) {
+                        numberSpawnArea.removeChild(numObjToProcess.element);
+                    }
+                    activeNumbers = activeNumbers.filter(obj => obj !== numObjToProcess);
+
+                    selectedBasketElement.classList.remove('correct-feedback');
+
+                    selectedNumberElement = null;
+                    selectedNumberValue = null;
+
+                    updateUI(); 
+
+                    if (player.hp <= 0 || timeLeft <= 0 || activeNumbers.length === 0) {
+                        endGame(player.hp <= 0 ? 'hp_zero' : (timeLeft <= 0 ? 'time_out' : 'all_categorized'));
+                    } else {
+                        gameMessage.textContent = 'คลิกที่ตัวเลขเพื่อเลือก!';
+                        gameMessage.className = 'message-info'; 
+                        enableBasketClicks(); 
+                    }
+                }, 500); 
+            } else { 
+                player.hp--;
+                gameMessage.textContent = `❌ ผิด! ${selectedNumberValue} ต้องใส่ตะกร้า "${correctType}" สิ!`;
+                gameMessage.className = 'message-incorrect';
+                numObjToProcess.element.classList.add('feedback-incorrect'); 
+                selectedBasketElement.classList.add('incorrect-feedback'); 
+                playSound('incorrect');
+                
+                const actualCorrectBasket = document.querySelector(`.basket[data-type="${correctType}"]`);
+                if (actualCorrectBasket) actualCorrectBasket.classList.add('correct-feedback');
+
+                numObjToProcess.dx = (Math.random() > 0.5 ? 1 : -1) * (NUMBER_SPEED * 1.5 + (Math.random() * 0.5)); 
+                numObjToProcess.dy = (Math.random() > 0.5 ? 1 : -1) * (NUMBER_SPEED * 1.5 + (Math.random() * 0.5));
+
+                setTimeout(() => {
+                    numObjToProcess.element.classList.remove('feedback-incorrect');
+                    selectedBasketElement.classList.remove('incorrect-feedback');
+                    if (actualCorrectBasket) actualCorrectBasket.classList.remove('correct-feedback');
+
+                    numObjToProcess.element.addEventListener('click', selectMovingNumber); 
+                    selectedNumberElement = null; 
+                    selectedNumberValue = null;
+
+                    updateUI();
+
+                    if (player.hp <= 0 || timeLeft <= 0) {
+                        endGame(player.hp <= 0 ? 'hp_zero' : 'time_out');
+                    } else {
+                        gameMessage.textContent = 'คลิกที่ตัวเลขเพื่อเลือก!';
+                        gameMessage.className = 'message-info'; 
+                        enableBasketClicks(); 
+                    }
+                }, 1000); 
+            }
+        }
+
+        function enableBasketClicks() {
+            negativeBasket.style.pointerEvents = 'auto';
+            zeroBasket.style.pointerEvents = 'auto';
+            positiveBasket.style.pointerEvents = 'auto';
+        }
+
+        function disableBasketClicks() {
+            negativeBasket.style.pointerEvents = 'none';
+            zeroBasket.style.pointerEvents = 'none';
+            positiveBasket.style.pointerEvents = 'none';
+        }
+
+        function resetGameLogic() {
+            player.score = 0;
+            player.hp = 3;
+            timeLeft = 60;
+            
+            stopAllNumbersMovement(); 
+            numberSpawnArea.innerHTML = ''; 
+            activeNumbers = []; 
+
+            selectedNumberElement = null;
+            selectedNumberValue = null;
+
+            finalScoreSpan.textContent = '0';
+            timerSpan.textContent = '01:00';
+            remainingNumbersSpan.textContent = '0'; 
+
+            clearInterval(gameTimer); 
+
+            gameMessage.textContent = ''; 
+            gameMessage.className = ''; 
+
+            updateUI(); 
+            
+            document.querySelectorAll('.basket').forEach(basket => {
+                basket.classList.remove('correct-feedback', 'incorrect-feedback');
+            });
+            disableBasketClicks(); 
+        }
+
+        function endGame(reason) {
+            clearInterval(gameTimer);
+            stopAllNumbersMovement(); 
+
+            disableBasketClicks(); 
+            activeNumbers.forEach(numObj => {
+                numObj.element.removeEventListener('click', selectMovingNumber);
+                numObj.element.classList.remove('selected'); 
+            });
+
+            // No more stats to update or save
+
+            finalScoreSpan.textContent = player.score;
+            let finalMessage = '';
+            if (reason === 'hp_zero') {
+                finalMessage = `เลือดหมด! 💔 ${player.name} ทำคะแนนได้ ${player.score} คะแนน`;
+                playSound('gameOver');
+            } else if (reason === 'time_out') {
+                finalMessage = `หมดเวลา! ⏱️ ${player.name} ทำคะแนนได้ ${player.score} คะแนน`;
+                playSound('gameOver');
+            } else if (reason === 'all_categorized') { 
+                finalMessage = `ยอดเยี่ยม! 🎉 ${player.name} เก็บตัวเลขได้ครบทุกตัว (${numberPoolInitial.length} ตัว)!`;
+                playSound('correct'); 
+            }
+            
+            gameMessage.textContent = finalMessage;
+            gameMessage.className = 'message-info'; 
+            finalResultMessage.textContent = finalMessage;
+
+            setTimeout(() => {
+                // No more stats to update on result screen
+                showScreen('result-screen');
+            }, 3000); 
+        }
+
+
+        // --- Event Listeners ---
+
+        // ตรวจสอบให้แน่ใจว่าปุ่ม "เริ่มเกม" ถูกดึงมาได้
+        if (startGameButton) {
+            startGameButton.addEventListener('click', () => {
+                playSound('click');
+                showScreen('game-screen');
+                startGameLogic();
+            });
+        } else {
+            console.error("Error: Start game button not found!");
+        }
+
+        // ตรวจสอบให้แน่ใจว่าปุ่ม "เล่นอีกครั้ง" ถูกดึงมาได้
+        if (playAgainButton) {
+            playAgainButton.addEventListener('click', () => {
+                playSound('click');
+                resetGameLogic();
+                showScreen('start-screen'); 
+            });
+        } else {
+            console.error("Error: Play again button not found!");
+        }
+
+        // ตรวจสอบให้แน่ใจว่าปุ่ม "เริ่มเกมใหม่" ถูกดึงมาได้
+        if (restartGameButton) {
+            restartGameButton.addEventListener('click', () => {
+                playSound('click');
+                resetGameLogic();
+                showScreen('game-screen'); 
+                startGameLogic(); 
+            });
+        } else {
+            console.error("Error: Restart game button not found!");
+        }
+
+        // Basket Click Handlers
+        negativeBasket.addEventListener('click', handleBasketClick);
+        zeroBasket.addEventListener('click', handleBasketClick);
+        positiveBasket.addEventListener('click', handleBasketClick);
+
+
+        // --- Initial Setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // No more loadStats() as stats are removed
+            showScreen('start-screen'); 
+            resetGameLogic(); 
+            // ตั้งค่าชื่อผู้เล่นเริ่มต้นในช่อง input เผื่อผู้เล่นไม่ได้กรอก
+            playerNameInput.value = player.name; 
+        });
+    </script>
+</body>
+</html>
